@@ -1,7 +1,7 @@
 exports.web = {
     // Bind host (default localhost only), set to 0.0.0.0 to bind all interfaces
-    host: '127.0.0.1',
-    port: 8080,
+    host: '0.0.0.0',
+    port: 8086,
     // Path where rendered WAVs will be written/served from
     filesPath: require('path').resolve(__dirname, 'files'),
     // Path where WAVs will be rendered before moving to the filesPath
