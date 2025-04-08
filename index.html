@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>aeiou</title>
+  </head>
+  <body>
+    <h2>Check out the project <a href="https://github.com/calzoneman/aeiou" target="_blank" rel="noopener noreferer">on GitHub</a>.</h2>
+    <h2>Try it:</h2>
+    <noscript>
+      This interactive demo requires JavaScript (but only the inline script on this page).
+    </noscript>
+    <form action="javascript:tts()">
+      <label for="input-text">Enter text:</label>
+      <br>
+      <textarea maxlength="1024" id="input-text" cols="60" rows="10">aeiou</textarea>
+      <br>
+      <button type="submit">Play</button>
+      <button onclick="javascript:stopPlayback()" type="button">Stop</button>
+      <a id="tts-download" href="/tts?text=aeiou">Download</a>
+    </form>
+    <p><strong id="error-output" style="color: red"></strong></p>
+    <p><strong>Note:</strong> this TTS engine only supports US-ASCII; attempts to submit Unicode will probably result in very garbled output and may time out.</p>
+    <audio id="result-audio">
+      Your browser does not support the HTML5 audio element.
+    </audio>
+    <script type="text/javascript">
+      let lastText = null;
+      let audio = document.getElementById('result-audio');
+      let playing = false;
+
+      audio.addEventListener('error', error => {
+        playing = false;
+        lastText = null;
+        // TODO: the web endpoint does return an error message, the question is how to best
+        // preserve that when we passed the original URL to an audio constructor instead of
+        // fetching it ourselves.
+        document.getElementById('error-output').innerText = 'There was an error processing your request';
+      });
+      audio.addEventListener('playing', () => {
+        playing = true;
+      });
+      audio.addEventListener('ended', () => {
+        playing = false;
+      });
+
+      function tts() {
+        let text = document.getElementById('input-text').value;
+        document.getElementById('error-output').innerText = '';
+
+        if (text !== lastText) {
+          audio.src = `/tts?text=${encodeURIComponent(text)}`;
+          audio.addEventListener('playing', () => {
+            lastText = text;
+          }, { once: true });
+        }
+        if (audio.readyState >= 2) {
+          audio.play();
+        } else {
+          audio.addEventListener('canplay', () => {
+            audio.play();
+          }, { once: true });
+        }
+      }
+
+      function stopPlayback() {
+        audio.pause();
+        audio.currentTime = 0;
+        playing = false;
+      }
+
+      document.getElementById('input-text').oninput = ev => {
+        let text = document.getElementById('input-text').value;
+        let downloadLink = document.getElementById('tts-download');
+        downloadLink.href = `/tts?text=${encodeURIComponent(text)}`;
+      };
+      document.getElementById('input-text').onkeydown = ev => {
+        if (ev.key === 'Enter' && ev.ctrlKey && !playing) tts();
+      };
+    </script>
+  </body>
+</html>
